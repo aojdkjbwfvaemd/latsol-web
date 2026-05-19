@@ -15,19 +15,22 @@ async function checkAdmin(deviceId) {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const deviceId = searchParams.get('deviceId');
-    const isAdminMode = searchParams.get('admin') === 'true';
+    const action = searchParams.get('action');
+    const id = searchParams.get('id');
 
-    if (isAdminMode) {
-      const authorized = await checkAdmin(deviceId);
-      if (!authorized) return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
-      
-      const { data } = await supabase.from('quiz_packets').select('id, packet_name, is_active').order('id', { ascending: false });
-      return NextResponse.json({ packets: data });
+    // Minta Daftar Nama Paket (Untuk Tampilan Depan)
+    if (action === 'list') {
+      const { data } = await supabase.from('quiz_packets').select('id, packet_name').order('id', { ascending: false });
+      return NextResponse.json(data || []);
     }
 
-    const { data } = await supabase.from('quiz_packets').select('packet_name, questions_data').eq('is_active', true).maybeSingle();
-    return NextResponse.json(data || { packet_name: "Kosong", questions_data: [] });
+    // Minta Isi Soal Berdasarkan Paket yang Dipilih
+    if (action === 'get' && id) {
+      const { data } = await supabase.from('quiz_packets').select('packet_name, questions_data').eq('id', id).maybeSingle();
+      return NextResponse.json(data || null);
+    }
+
+    return NextResponse.json({ message: 'Action not valid' }, { status: 400 });
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
@@ -39,38 +42,28 @@ export async function POST(request) {
     const authorized = await checkAdmin(deviceId);
     if (!authorized) return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
 
-    if (!Array.isArray(jsonData)) return NextResponse.json({ message: 'Format JSON harus berupa Array' }, { status: 400 });
-    
-    for (let item of jsonData) {
-      if (!item.id || !item.tag || !item.tagLabel || !item.soal || !Array.isArray(item.opsi) || item.jawaban === undefined || !item.pembahasan) {
-        return NextResponse.json({ message: `Struktur salah pada item ID: ${item.id || 'Unknown'}. Pastikan memiliki komponen: id, tag, tagLabel, soal, opsi (array), jawaban (0-3), pembahasan.` }, { status: 400 });
-      }
-      if (item.opsi.length !== 4) return NextResponse.json({ message: `ID ${item.id} harus memiliki tepat 4 opsi jawaban.` }, { status: 400 });
-    }
+    if (!Array.isArray(jsonData)) return NextResponse.json({ message: 'Format JSON harus Array' }, { status: 400 });
 
-    await supabase.from('quiz_packets').update({ is_active: false }).eq('is_active', true);
-
-    // Masukkan paket soal baru dan langsung jadikan aktif
-    const { data, error } = await supabase.from('quiz_packets').insert([
-      { packet_name: packetName, questions_data: jsonData, is_active: true }
+    const { error } = await supabase.from('quiz_packets').insert([
+      { packet_name: packetName, questions_data: jsonData }
     ]);
 
-    return NextResponse.json({ success: true, message: 'Paket baru berhasil disimpan dan diaktifkan!' });
+    if (error) throw error;
+    return NextResponse.json({ success: true, message: 'Paket berhasil ditambahkan ke database!' });
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
 
-export async function PUT(request) {
+// Fitur Baru: Hapus Paket (Khusus Admin)
+export async function DELETE(request) {
   try {
     const { deviceId, packetId } = await request.json();
     const authorized = await checkAdmin(deviceId);
     if (!authorized) return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
 
-    await supabase.from('quiz_packets').update({ is_active: false }).eq('is_active', true);
-    await supabase.from('quiz_packets').update({ is_active: true }).eq('id', packetId);
-
-    return NextResponse.json({ success: true, message: 'Paket soal berhasil diganti!' });
+    await supabase.from('quiz_packets').delete().eq('id', packetId);
+    return NextResponse.json({ success: true, message: 'Paket berhasil dihapus!' });
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
