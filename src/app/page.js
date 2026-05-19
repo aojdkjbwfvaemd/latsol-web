@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useChat } from 'ai/react';
 
 export default function Home() {
   // State Mode Tampilan & Menu
@@ -26,6 +27,35 @@ export default function Home() {
   // State Toast
   const [toastMsg, setToastMsg] = useState('');
   const [showToast, setShowToast] = useState(false);
+
+  // State AI Chat Bubble
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const chatEndRef = useRef(null);
+
+  // Bangun konteks soal untuk AI (ringkasan tanpa jawaban)
+  const quizContext = !isMenuMode && soal.length > 0
+    ? `Paket: "${packetName}"\nJumlah soal: ${soal.length}\n\nDaftar soal:\n` +
+      soal.map((s, i) =>
+        `Soal ${i + 1} [${s.tagLabel}]: ${s.soal.replace(/<[^>]*>/g, '')}\nOpsi: ${s.opsi.map((o, idx) => `${['A','B','C','D'][idx]}) ${o}`).join(', ')}`
+      ).join('\n\n')
+    : '';
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading: isChatLoading, setMessages } = useChat({
+    api: '/api/chat',
+    body: { quizContext },
+    onError: () => triggerToast('❌ AI tidak bisa dijangkau. Cek API key!'),
+  });
+
+  // Auto-scroll chat ke bawah saat pesan baru masuk
+  useEffect(() => {
+    if (isChatOpen) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isChatOpen]);
+
+  // Reset chat saat ganti paket soal
+  useEffect(() => {
+    setMessages([]);
+    setIsChatOpen(false);
+  }, [packetName]);
 
   useEffect(() => {
     let id = localStorage.getItem('device_auth_id');
@@ -394,6 +424,56 @@ export default function Home() {
         .admin-section h4 { font-size: 13px; color: var(--accent2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
         .admin-packet-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
       
+        /* === AI CHAT BUBBLE === */
+        .ai-bubble-toggle { position: fixed; bottom: 28px; right: 24px; width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #34d399, #059669); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 4px 20px rgba(52, 211, 153, 0.4); z-index: 900; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s; }
+        .ai-bubble-toggle:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(52, 211, 153, 0.6); }
+        .ai-bubble-toggle.open { background: linear-gradient(135deg, #475569, #334155); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+        .ai-bubble-toggle .bubble-badge { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: var(--accent2); border-radius: 50%; border: 2px solid var(--bg); animation: pulseBadge 2s infinite; }
+        @keyframes pulseBadge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+        .ai-chat-panel { position: fixed; bottom: 94px; right: 24px; width: 360px; max-width: calc(100vw - 32px); height: 480px; background: #0d1a14; border: 1px solid var(--accent); border-radius: 16px; display: flex; flex-direction: column; z-index: 900; box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(52,211,153,0.1); overflow: hidden; animation: popIn 0.3s cubic-bezier(0.34, 1.3, 0.64, 1); }
+        
+        .ai-chat-header { background: linear-gradient(135deg, #081a12, #0d2018); padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .ai-chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #34d399, #059669); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+        .ai-chat-title { flex: 1; }
+        .ai-chat-title strong { display: block; font-size: 13px; color: #fff; font-weight: 600; }
+        .ai-chat-title span { font-size: 11px; color: var(--accent); font-family: 'Space Mono', monospace; }
+        .ai-chat-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: color 0.2s; line-height: 1; }
+        .ai-chat-close:hover { color: var(--text); }
+
+        .ai-chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+        .ai-chat-messages::-webkit-scrollbar { width: 4px; }
+        .ai-chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .ai-chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .chat-msg { max-width: 88%; display: flex; flex-direction: column; gap: 3px; animation: fadeInUp 0.2s ease-out; }
+        .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+        .chat-msg.assistant { align-self: flex-start; align-items: flex-start; }
+        .chat-bubble { padding: 10px 13px; border-radius: 12px; font-size: 13px; line-height: 1.6; word-break: break-word; }
+        .chat-msg.user .chat-bubble { background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.25); color: #d1fae5; border-radius: 12px 12px 4px 12px; }
+        .chat-msg.assistant .chat-bubble { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); border-radius: 12px 12px 12px 4px; }
+        .chat-role-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 0.5px; }
+
+        .ai-chat-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); text-align: center; padding: 20px; }
+        .ai-chat-empty .empty-icon { font-size: 32px; opacity: 0.5; }
+        .ai-chat-empty p { font-size: 12px; line-height: 1.6; }
+        .ai-chat-empty .suggestion-chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; width: 100%; }
+        .suggestion-chip { background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.2); color: var(--accent); font-size: 11.5px; padding: 7px 12px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s; font-family: 'Sora', sans-serif; }
+        .suggestion-chip:hover { background: rgba(52,211,153,0.14); border-color: var(--accent); }
+
+        .ai-chat-typing { display: flex; align-items: center; gap: 4px; padding: 10px 13px; }
+        .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typingBounce 1.2s infinite; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+        .ai-chat-input-area { padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; background: rgba(0,0,0,0.2); }
+        .ai-chat-textarea { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; color: #fff; font-family: 'Sora', sans-serif; font-size: 13px; padding: 9px 12px; resize: none; min-height: 40px; max-height: 100px; line-height: 1.5; transition: border-color 0.2s; overflow-y: auto; }
+        .ai-chat-textarea:focus { outline: none; border-color: var(--accent); }
+        .ai-chat-textarea::placeholder { color: var(--muted); }
+        .ai-send-btn { width: 36px; height: 36px; border-radius: 8px; background: var(--accent); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #051a10; flex-shrink: 0; transition: all 0.2s; font-weight: bold; }
+        .ai-send-btn:hover:not(:disabled) { background: #6ee7b7; transform: scale(1.05); }
+        .ai-send-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
       `}</style>
 
       {/* HEADER DINAMIS */}
@@ -575,6 +655,123 @@ export default function Home() {
             )}
           </div>
         </div>
+      )}
+      {/* === AI FLOATING CHAT BUBBLE (hanya muncul di mode kuis) === */}
+      {!isMenuMode && (
+        <>
+          {/* Panel Chat */}
+          {isChatOpen && (
+            <div className="ai-chat-panel">
+              {/* Header */}
+              <div className="ai-chat-header">
+                <div className="ai-chat-avatar">🤖</div>
+                <div className="ai-chat-title">
+                  <strong>Asisten Belajar AI</strong>
+                  <span>● Online · Tanya apa aja soal materi</span>
+                </div>
+                <button className="ai-chat-close" onClick={() => setIsChatOpen(false)}>✕</button>
+              </div>
+
+              {/* Pesan */}
+              <div className="ai-chat-messages">
+                {messages.length === 0 ? (
+                  <div className="ai-chat-empty">
+                    <div className="empty-icon">💬</div>
+                    <p>Halo! Aku AI yang bisa bantu kamu memahami materi di paket soal ini.<br />Tanya apa aja!</p>
+                    <div className="suggestion-chips">
+                      {[
+                        '📖 Jelaskan konsep utama di soal ini',
+                        '❓ Aku bingung soal nomor 1, bantu dong',
+                        '💡 Tips mengerjakan soal ini?',
+                      ].map((chip) => (
+                        <button
+                          key={chip}
+                          className="suggestion-chip"
+                          onClick={() => {
+                            handleInputChange({ target: { value: chip.slice(3) } });
+                          }}
+                        >
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((msg) => (
+                      <div key={msg.id} className={`chat-msg ${msg.role}`}>
+                        <span className="chat-role-label">
+                          {msg.role === 'user' ? 'Kamu' : '🤖 AI'}
+                        </span>
+                        <div className="chat-bubble">
+                          {msg.content}
+                        </div>
+                      </div>
+                    ))}
+                    {isChatLoading && (
+                      <div className="chat-msg assistant">
+                        <span className="chat-role-label">🤖 AI</span>
+                        <div className="chat-bubble">
+                          <div className="ai-chat-typing">
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Input Area */}
+              <form
+                className="ai-chat-input-area"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!input.trim() || isChatLoading) return;
+                  handleSubmit(e);
+                }}
+              >
+                <textarea
+                  className="ai-chat-textarea"
+                  placeholder="Tanya tentang materi soal ini..."
+                  value={input}
+                  onChange={handleInputChange}
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (!input.trim() || isChatLoading) return;
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="ai-send-btn"
+                  disabled={!input.trim() || isChatLoading}
+                  title="Kirim (Enter)"
+                >
+                  ➤
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Tombol Bubble Floating */}
+          <button
+            className={`ai-bubble-toggle ${isChatOpen ? 'open' : ''}`}
+            onClick={() => setIsChatOpen(v => !v)}
+            title={isChatOpen ? 'Tutup chat AI' : 'Buka asisten AI'}
+          >
+            {isChatOpen ? '✕' : '🤖'}
+            {!isChatOpen && messages.length === 0 && (
+              <span className="bubble-badge" />
+            )}
+          </button>
+        </>
       )}
     </>
   );
