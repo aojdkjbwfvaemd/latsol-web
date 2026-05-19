@@ -203,8 +203,13 @@ export default function Home() {
           --tag-ekonomi: #ffa502;
           --tag-sosiologi: #2ed573;
           --tag-geografi: #1e90ff;
+          --tag-komputasional: #f43f5e;
+          --tag-algoritma: #8b5cf6;
+          --tag-scratch: #0ea5e9;
+          --tag-blockly: #10b981;
 
         }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; padding: 0 0 80px; overflow-x: hidden; }
         
@@ -320,6 +325,18 @@ export default function Home() {
   background: rgba(30, 144, 255, 0.1);
   color: var(--tag-geografi);
   border: 1px solid rgba(30, 144, 255, 0.3);
+}
+.tag-berpikir-komputasional {
+  background: rgba(244, 63, 94, 0.12); color: var(--tag-komputasional); border: 1px solid rgba(244, 63, 94, 0.3);
+}
+.tag-algoritma {
+  background: rgba(139, 92, 246, 0.12); color: var(--tag-algoritma); border: 1px solid rgba(139, 92, 246, 0.3);
+}
+.tag-scratch {
+  background: rgba(14, 165, 233, 0.12); color: var(--tag-scratch); border: 1px solid rgba(14, 165, 233, 0.3);
+}
+.tag-blockly-games, .tag-pemrograman-visual {
+  background: rgba(16, 185, 129, 0.12); color: var(--tag-blockly); border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
         .q-body { padding: 12px 20px 6px; }
