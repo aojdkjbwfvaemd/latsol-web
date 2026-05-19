@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { useChat } from 'ai/react';
 
 export default function Home() {
   // State Mode Tampilan & Menu
@@ -40,11 +39,67 @@ export default function Home() {
       ).join('\n\n')
     : '';
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading: isChatLoading, setMessages } = useChat({
-    api: '/api/chat',
-    body: { quizContext },
-    onError: () => triggerToast('❌ AI tidak bisa dijangkau. Cek API key!'),
-  });
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+
+  const handleInputChange = (e) => setInput(e.target.value);
+
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    if (!input.trim() || isChatLoading) return;
+
+    const systemPrompt = `Kamu adalah asisten belajar AI yang cerdas dan ramah untuk platform latihan soal SAT. Tugasmu adalah membantu siswa memahami materi pelajaran, menjelaskan konsep, dan menjawab pertanyaan seputar soal latihan.
+
+Panduan perilaku:
+- Jawab dalam Bahasa Indonesia yang jelas dan mudah dipahami
+- Jangan langsung memberikan jawaban soal kuis jika belum dikerjakan — dorong siswa untuk berpikir dulu
+- Berikan penjelasan konsep yang mendalam namun ringkas
+- Gunakan analogi atau contoh nyata jika membantu pemahaman
+- Bersikap supportif dan motivatif
+
+${quizContext ? `
+=== KONTEKS PAKET SOAL AKTIF ===
+Siswa sedang mengerjakan paket soal berikut:
+${quizContext}
+=== AKHIR KONTEKS ===` : 'Siswa belum memilih paket soal.'}
+
+Bimbing siswa dengan penjelasan konsep. Jangan bocorkan jawaban.`;
+
+    const userMsg = { id: Date.now().toString(), role: 'user', content: input };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setInput('');
+    setIsChatLoading(true);
+
+    try {
+      const chatPayload = [
+        { role: 'system', content: systemPrompt },
+        ...newMessages.map(m => ({ role: m.role, content: m.content }))
+      ];
+
+      const response = await window.puter.ai.chat(chatPayload, {
+        model: 'claude-haiku-4-5-20251001',
+      });
+
+      const assistantContent =
+        response?.message?.content?.[0]?.text ||
+        response?.text ||
+        response?.content ||
+        String(response);
+
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: assistantContent
+      }]);
+    } catch (err) {
+      console.error(err);
+      triggerToast('❌ AI tidak bisa dijangkau!');
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
 
   // Auto-scroll chat ke bawah saat pesan baru masuk
   useEffect(() => {
@@ -56,6 +111,15 @@ export default function Home() {
     setMessages([]);
     setIsChatOpen(false);
   }, [packetName]);
+
+  // Load Puter.js CDN
+  useEffect(() => {
+    if (document.querySelector('script[src="https://js.puter.com/v2/"]')) return;
+    const script = document.createElement('script');
+    script.src = 'https://js.puter.com/v2/';
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
 
   useEffect(() => {
     let id = localStorage.getItem('device_auth_id');
