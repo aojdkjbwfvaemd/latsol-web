@@ -199,6 +199,11 @@ export default function Home() {
           --tag-gelombang: #34d399; --tag-cahaya: #60a5fa; --tag-zat: #fbbf24; --tag-bumi: #f472b6;
           --tag-narrative: #a855f7; --tag-recount: #38bdf8; --tag-present: #f97316; --tag-past: #ec4899; 
           --tag-pastcont: #14b8a6; --tag-comparison: #84cc16; --tag-vocab: #f43f5e; --tag-reading: #6366f1;
+          --tag-sejarah: #ff4757;
+          --tag-ekonomi: #ffa502;
+          --tag-sosiologi: #2ed573;
+          --tag-geografi: #1e90ff;
+
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; padding: 0 0 80px; overflow-x: hidden; }
@@ -293,6 +298,29 @@ export default function Home() {
         .tag-comparison { background: rgba(132,204,22,0.12); color: var(--tag-comparison); }
         .tag-vocab { background: rgba(244,63,94,0.12); color: var(--tag-vocab); }
         .tag-reading { background: rgba(99,102,241,0.12); color: var(--tag-reading); }
+        .tag-penjelajahan, .tag-pergerakan, .tag-perlawanan, .tag-kolonialisme, .tag-jepang, .tag-kemerdekaan {
+  background: rgba(255, 6b, 103, 0.1);
+  color: var(--tag-sejarah);
+  border: 1px solid rgba(255, 6b, 103, 0.3);
+}
+
+.tag-keuangan, .tag-ekonomi, .tag-perdagangan {
+  background: rgba(255, 165, 2, 0.1);
+  color: var(--tag-ekonomi);
+  border: 1px solid rgba(255, 165, 2, 0.3);
+}
+
+.tag-konflik, .tag-integrasi, .tag-pembangunan {
+  background: rgba(46, 213, 115, 0.1);
+  color: var(--tag-sosiologi);
+  border: 1px solid rgba(46, 213, 115, 0.3);
+}
+
+.tag-penduduk {
+  background: rgba(30, 144, 255, 0.1);
+  color: var(--tag-geografi);
+  border: 1px solid rgba(30, 144, 255, 0.3);
+}
 
         .q-body { padding: 12px 20px 6px; }
         .q-text { font-size: 14.5px; line-height: 1.75; color: #ffffff; }
@@ -348,39 +376,6 @@ export default function Home() {
         .admin-section { border-top: 1px dashed var(--border); margin-top: 16px; padding-top: 16px; }
         .admin-section h4 { font-size: 13px; color: var(--accent2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
         .admin-packet-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
-      
-      /* Tambahkan warna CSS Variables baru untuk IPS */
-:root {
-  --tag-sejarah: #ff4757;
-  --tag-ekonomi: #ffa502;
-  --tag-sosiologi: #2ed573;
-  --tag-geografi: #1e90ff;
-}
-
-/* Mapping Class Tag di CSS */
-.tag-penjelajahan, .tag-pergerakan, .tag-perlawanan, .tag-kolonialisme, .tag-jepang, .tag-kemerdekaan {
-  background: rgba(255, 6b, 103, 0.1);
-  color: var(--tag-sejarah);
-  border: 1px solid rgba(255, 6b, 103, 0.3);
-}
-
-.tag-keuangan, .tag-ekonomi, .tag-perdagangan {
-  background: rgba(255, 165, 2, 0.1);
-  color: var(--tag-ekonomi);
-  border: 1px solid rgba(255, 165, 2, 0.3);
-}
-
-.tag-konflik, .tag-integrasi, .tag-pembangunan {
-  background: rgba(46, 213, 115, 0.1);
-  color: var(--tag-sosiologi);
-  border: 1px solid rgba(46, 213, 115, 0.3);
-}
-
-.tag-penduduk {
-  background: rgba(30, 144, 255, 0.1);
-  color: var(--tag-geografi);
-  border: 1px solid rgba(30, 144, 255, 0.3);
-}
       
       `}</style>
 
