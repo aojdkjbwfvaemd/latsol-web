@@ -58,7 +58,7 @@ export default function Home() {
 
   const loadQuizPacket = (id) => {
     setIsLoading(true);
-    triggerToast('Sedang menyiapkan soal...');
+    triggerToast('🚀 Menyiapkan simulasi soal...');
     fetch(`/api/quiz?action=get&id=${id}`)
       .then(res => res.json())
       .then(data => {
@@ -201,51 +201,86 @@ export default function Home() {
           --tag-pastcont: #14b8a6; --tag-comparison: #84cc16; --tag-vocab: #f43f5e; --tag-reading: #6366f1;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; padding: 0 0 80px; }
+        body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; padding: 0 0 80px; overflow-x: hidden; }
+        
+        /* --- ANIMATIONS ENGINE --- */
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes popIn {
+          0% { transform: scale(0.92); opacity: 0; }
+          70% { transform: scale(1.02); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulseCorrect {
+          0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+          70% { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+        @keyframes pulseUnanswered {
+          0% { border-color: #1e2e28; }
+          50% { border-color: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.2); }
+          100% { border-color: #1e2e28; }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes slideToast {
+          0% { transform: translateX(-50%) translateY(40px); opacity: 0; }
+          100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* --- STYLES --- */
         .header { background: linear-gradient(135deg, #081a12 0%, #0a0f0d 60%); border-bottom: 1px solid var(--border); padding: 40px 24px 32px; position: relative; overflow: hidden; }
         .header::before { content: ''; position: absolute; top: -60px; right: -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(52,211,153,0.12) 0%, transparent 70%); border-radius: 50%; }
-        .header-inner { max-width: 780px; margin: 0 auto; position: relative; }
+        .header-inner { max-width: 780px; margin: 0 auto; position: relative; animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .header-label { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; display: inline-block; }
         .header h1 { font-size: clamp(22px, 5vw, 34px); font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
         .header h1 span { color: var(--accent2); }
         .setting-trigger { position: absolute; top: 15px; right: 20px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 18px; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; z-index: 10; }
-        .setting-trigger:hover { border-color: var(--accent2); color: var(--accent2); }
+        .setting-trigger:hover { border-color: var(--accent2); color: var(--accent2); transform: rotate(45deg); }
         
-        /* CSS KHUSUS MENU MAPEL */
+        /* CSS MENU MAPEL + ANIMATION */
         .menu-grid { max-width: 780px; margin: 30px auto; padding: 0 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
-        .paket-card { background: var(--card); border: 1px solid var(--border); padding: 24px; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; justify-content: center; min-height: 120px; position: relative; overflow: hidden; }
-        .paket-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .paket-card { background: var(--card); border: 1px solid var(--border); padding: 24px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 120px; position: relative; overflow: hidden; transform: translateY(0); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .paket-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.3); }
         .paket-card::after { content:''; position:absolute; bottom:0; left:0; height:3px; width:0; background:var(--accent); transition: width 0.3s ease; }
         .paket-card:hover::after { width:100%; }
         .paket-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 8px; }
-        .paket-btn { align-self: flex-start; margin-top: 10px; font-size: 12px; color: var(--accent); font-family: 'Space Mono', monospace; }
-        .back-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-right: 15px; font-family: 'Sora'; }
-        .back-btn:hover { background: rgba(255,255,255,0.1); }
+        .paket-btn { align-self: flex-start; margin-top: 10px; font-size: 12px; color: var(--accent); font-family: 'Space Mono', monospace; transition: transform 0.2s; }
+        .paket-card:hover .paket-btn { transform: translateX(4px); }
+        .back-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-right: 15px; font-family: 'Sora'; transition: all 0.2s; }
+        .back-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--text); }
 
-        /* CSS KUIS STANDAR */
-        .legend { max-width: 780px; margin: 22px auto 0; padding: 0 24px; display: flex; gap: 14px; flex-wrap: wrap; }
-        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .controls { max-width: 780px; margin: 18px auto 0; padding: 0 24px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .btn { padding: 8px 18px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
-        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        /* KUIS & AREA SOAL */
+        .controls { max-width: 780px; margin: 18px auto 0; padding: 0 24px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; animation: fadeInUp 0.5s ease-out 0.1s forwards; opacity: 0; }
+        .btn { padding: 8px 18px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+        .btn:active { transform: translateY(1px); }
         .btn.primary { background: var(--accent); border-color: var(--accent); color: #051a10; font-weight: 700; }
+        .btn.primary:hover { box-shadow: 0 0 12px rgba(52, 211, 153, 0.3); }
         .btn.danger { background: rgba(248,113,113,0.1); border-color: var(--wrong); color: var(--wrong); }
         .btn.danger:hover { background: var(--wrong); color: #fff; }
         .score-display { margin-left: auto; font-family: 'Space Mono', monospace; font-size: 13px; color: var(--accent2); }
-        .progress-bar-wrap { max-width: 780px; margin: 16px auto 0; padding: 0 24px; }
+        
+        /* PROGRESS BAR FLOWING */
+        .progress-bar-wrap { max-width: 780px; margin: 16px auto 0; padding: 0 24px; animation: fadeInUp 0.5s ease-out 0.15s forwards; opacity: 0; }
         .progress-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-family: 'Space Mono', monospace; }
-        .progress-track { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.3s ease; }
-        .questions { max-width: 780px; margin: 28px auto 0; padding: 0 24px; display: flex; flex-direction: column; gap: 18px; }
-        .q-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
-        .q-card.unanswered { border-color: #f59e0b; }
-        .q-card.answered-correct { border-color: var(--correct); }
-        .q-card.answered-wrong { border-color: var(--wrong); }
+        .progress-track { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 8px var(--accent); }
+        
+        /* QUESTIONS PACK */
+        .questions { max-width: 780px; margin: 28px auto 0; padding: 0 24px; display: flex; flex-direction: column; gap: 20px; }
+        .q-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; transition: border-color 0.3s, box-shadow 0.3s; }
+        .q-card.unanswered { animation: pulseUnanswered 1.5s infinite; }
+        .q-card.answered-correct { border-color: var(--correct); box-shadow: 0 0 15px rgba(74, 222, 128, 0.05); }
+        .q-card.answered-wrong { border-color: var(--wrong); box-shadow: 0 0 15px rgba(248, 113, 113, 0.05); }
         .q-header { display: flex; align-items: center; gap: 10px; padding: 16px 20px 0; }
         .q-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); min-width: 28px; }
         .q-tag { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; }
         
+        /* TAG COLOR SCHEMES */
         .tag-gelombang { background: rgba(52,211,153,0.12); color: var(--tag-gelombang); }
         .tag-cahaya { background: rgba(96,165,250,0.12); color: var(--tag-cahaya); }
         .tag-zat { background: rgba(251,191,36,0.12); color: var(--tag-zat); }
@@ -260,46 +295,59 @@ export default function Home() {
         .tag-reading { background: rgba(99,102,241,0.12); color: var(--tag-reading); }
 
         .q-body { padding: 12px 20px 6px; }
-        .q-text { font-size: 14px; line-height: 1.75; color: #ffffff; }
+        .q-text { font-size: 14.5px; line-height: 1.75; color: #ffffff; }
         .q-text .hl { font-family: 'Space Mono', monospace; background: rgba(52,211,153,0.1); color: var(--accent); padding: 1px 5px; border-radius: 3px; font-size: 12.5px; }
         .q-text .hl2 { font-family: 'Space Mono', monospace; background: rgba(251,191,36,0.1); color: var(--accent2); padding: 1px 5px; border-radius: 3px; font-size: 12.5px; }
+        
+        /* MICROINTERACTIONS OPTIONS */
         .options { padding: 10px 20px 18px; display: flex; flex-direction: column; gap: 8px; }
-        .option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 13.5px; line-height: 1.55; background: transparent; text-align: left; width: 100%; color: #ffffff; transition: all 0.15s; }
-        .option:hover { border-color: var(--accent); background: rgba(52,211,153,0.05); }
-        .option.selected { border-color: var(--accent); background: rgba(52,211,153,0.08); }
-        .option.correct { border-color: var(--correct) !important; background: rgba(74,222,128,0.1) !important; }
-        .option.wrong { border-color: var(--wrong) !important; background: rgba(248,113,113,0.1) !important; }
+        .option { display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 13.5px; line-height: 1.55; background: transparent; text-align: left; width: 100%; color: #ffffff; transform: scale(1); transition: transform 0.1s, border-color 0.2s, background-color 0.2s; }
+        .option:hover { border-color: var(--accent); background: rgba(52,211,153,0.04); }
+        .option:active { transform: scale(0.985); }
+        .option.selected { border-color: var(--accent); background: rgba(52,211,153,0.08); box-shadow: 0 0 10px rgba(52,211,153,0.05); }
+        .option.correct { border-color: var(--correct) !important; background: rgba(74,222,128,0.12) !important; animation: pulseCorrect 0.5s ease-out; }
+        .option.wrong { border-color: var(--wrong) !important; background: rgba(248,113,113,0.12) !important; }
         .option.reveal-correct { border-color: var(--correct) !important; background: rgba(74,222,128,0.06) !important; }
-        .opt-letter { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--muted); min-width: 18px; padding-top: 1px; }
+        .opt-letter { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--muted); min-width: 18px; padding-top: 1px; transition: color 0.2s; }
         .option.selected .opt-letter { color: var(--accent); }
         .option.correct .opt-letter { color: var(--correct); }
         .option.wrong .opt-letter { color: var(--wrong); }
-        .option.reveal-correct .opt-letter { color: var(--correct); }
-        .pembahasan { margin: 0 20px 16px; padding: 12px 14px; background: rgba(251,191,36,0.06); border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0; font-size: 12.5px; color: #c0a860; line-height: 1.7; display: none; }
-        .pembahasan.show { display: block; }
+        
+        /* PEMBAHASAN ACCORDION LOOK */
+        .pembahasan { margin: 0 20px 16px; padding: 12px 14px; background: rgba(251,191,36,0.05); border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0; font-size: 12.5px; color: #c0a860; line-height: 1.7; display: none; opacity: 0; transform: translateY(5px); transition: all 0.3s ease-out; }
+        .pembahasan.show { display: block; opacity: 1; transform: translateY(0); }
         .pembahasan strong { color: var(--accent2); }
         
-        .bottom-controls { max-width: 780px; margin: 28px auto 0; padding: 0 24px; }
+        /* FOOTER AREA */
+        .bottom-controls { max-width: 780px; margin: 28px auto 0; padding: 0 24px; animation: fadeInUp 0.5s ease-out; }
         .submit-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
         .submit-info { font-size: 13px; color: var(--muted); }
         .submit-info span { color: var(--text); font-weight: 600; }
+        
+        /* BOUNCY POP IN RESULT */
         .result-card { max-width: 780px; margin: 20px auto 0; padding: 0 24px; display: none; }
         .result-card.show { display: block; }
-        .result-inner { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; text-align: center; }
-        .result-score { font-family: 'Space Mono', monospace; font-size: 54px; font-weight: 700; color: var(--accent2); margin: 8px 0; }
+        .result-inner { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; text-align: center; animation: popIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; box-shadow: 0 16px 32px rgba(0,0,0,0.4); }
+        .result-score { font-family: 'Space Mono', monospace; font-size: 58px; font-weight: 700; color: var(--accent2); margin: 6px 0; text-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         
-        .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1e1208; border: 1px solid #f59e0b; color: #fde68a; font-size: 13px; padding: 12px 20px; border-radius: 8px; z-index: 999; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        /* TOAST SLIDEOUT */
+        .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: #111e17; border: 1px solid var(--accent); color: #a7f3d0; font-size: 13px; padding: 12px 22px; border-radius: 8px; z-index: 999; opacity: 0; pointer-events: none; box-shadow: 0 8px 20px rgba(0,0,0,0.4); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; animation: slideToast 0.3s ease forwards; }
         
-        /* CSS MODAL & ADMIN */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-        .modal-content { background: var(--card); border: 1px solid var(--border); padding: 24px; border-radius: 12px; width: 100%; max-width: 460px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+        /* NEON LOADER SPINNER */
+        .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; grid-column: 1 / -1; padding: 60px 0; gap: 15px; color: var(--muted); font-size: 13px; font-family: 'Space Mono', monospace; }
+        .spinner { width: 32px; height: 32px; border: 3px solid rgba(52, 211, 153, 0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card); border: 1px solid var(--border); padding: 24px; border-radius: 12px; width: 100%; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; animation: popIn 0.3s cubic-bezier(0.34, 1.3, 0.64, 1); }
         .modal-content h3 { margin-bottom: 5px; font-size: 18px; color: #fff; }
         .modal-desc { font-size: 12px; color: var(--muted); margin-bottom: 16px; font-family: 'Space Mono', monospace; }
-        .modal-input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: #fff; font-family: 'Sora', sans-serif; font-size: 14px; margin-bottom: 14px; }
+        .modal-input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: #fff; font-family: 'Sora', sans-serif; font-size: 14px; margin-bottom: 14px; transition: border-color 0.2s; }
+        .modal-input:focus { border-color: var(--accent); outline: none; }
         .admin-section { border-top: 1px dashed var(--border); margin-top: 16px; padding-top: 16px; }
         .admin-section h4 { font-size: 13px; color: var(--accent2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-        .admin-packet-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
+        .admin-packet-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
       `}</style>
 
       {/* HEADER DINAMIS */}
@@ -307,18 +355,18 @@ export default function Home() {
         <button className="setting-trigger" onClick={() => setShowModal(true)}>⚙️</button>
         <div className="header-inner">
           <div className="header-label">
-            {!isMenuMode && <button className="back-btn" onClick={backToMenu}>← KEMBALI</button>}
+            {!isMenuMode && <button className="back-btn" onClick={backToMenu}>← MENU</button>}
             Platform Latihan · SAT 2026
           </div>
           {isMenuMode ? (
             <>
               <h1>Pilih Paket Latihan<br /><span>Ujian SAT</span></h1>
-              <p className="header-sub">Pilih salah satu mata pelajaran di bawah untuk mulai simulasi.</p>
+              <p style={{ fontSize:'13.5px', color:'var(--muted)', marginTop:'6px' }}>Silakan pilih salah satu simulasi mata pelajaran di bawah ini.</p>
             </>
           ) : (
             <>
               <h1>{packetName.split('\n')[0]}<br /><span>{soal.length} Soal Pilihan Ganda</span></h1>
-              <p className="header-sub">Kerjakan dengan teliti. Hasil akan dikoreksi otomatis.</p>
+              <p style={{ fontSize:'13.5px', color:'var(--muted)', marginTop:'6px' }}>Hasil koreksi otomatis dan pembahasan lengkap akan terbuka di akhir kuis.</p>
             </>
           )}
         </div>
@@ -328,12 +376,20 @@ export default function Home() {
       {isMenuMode && (
         <div className="menu-grid">
           {isLoading ? (
-            <div style={{ color: 'var(--muted)', textAlign: 'center', gridColumn: '1 / -1', padding: '40px' }}>Memuat daftar soal dari server...</div>
+            <div className="loader-container">
+              <div className="spinner"></div>
+              <div>MENARIK DATA DARI SUPABASE...</div>
+            </div>
           ) : packetsList.length === 0 ? (
-            <div style={{ color: 'var(--muted)', textAlign: 'center', gridColumn: '1 / -1', padding: '40px' }}>Belum ada paket soal yang tersedia.</div>
+            <div style={{ color: 'var(--muted)', textAlign: 'center', gridColumn: '1 / -1', padding: '40px', fontSize: '13.5px' }}>Belum ada paket kuis yang di-upload admin.</div>
           ) : (
-            packetsList.map(paket => (
-              <div className="paket-card" key={paket.id} onClick={() => loadQuizPacket(paket.id)}>
+            packetsList.map((paket, index) => (
+              <div 
+                className="paket-card" 
+                key={paket.id} 
+                onClick={() => loadQuizPacket(paket.id)}
+                style={{ animationDelay: `${index * 0.06}s` }} // Efek meluncur berurutan
+              >
                 <div className="paket-title">{paket.packet_name}</div>
                 <div className="paket-btn">Mulai Kuis ➔</div>
               </div>
@@ -342,18 +398,18 @@ export default function Home() {
         </div>
       )}
 
-      {/* WAJAH 2: MODE KUIS (HTML SOAL) */}
+      {/* WAJAH 2: MODE KUIS (AREA SOAL) */}
       {!isMenuMode && (
         <>
           <div className="controls">
-            <button className="btn" onClick={handleResetAll}>Reset</button>
-            {submitted && <div className="score-display">{score} / {soal.length} benar</div>}
+            <button className="btn" onClick={handleResetAll}>Reset Jawaban</button>
+            {submitted && <div className="score-display">Skor: {score} / {soal.length} Benar</div>}
           </div>
 
           <div className="progress-bar-wrap">
             <div className="progress-info">
-              <span>Progress jawaban</span>
-              <span>{answeredCount} / {soal.length}</span>
+              <span>Progress Pengisian</span>
+              <span>{answeredCount} / {soal.length} Selesai</span>
             </div>
             <div className="progress-track">
               <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
@@ -369,9 +425,14 @@ export default function Home() {
               }
 
               return (
-                <div className={`q-card ${cardStatusClass}`} id={`card-${qIndex}`} key={qIndex}>
+                <div 
+                  className={`q-card ${cardStatusClass}`} 
+                  id={`card-${qIndex}`} 
+                  key={qIndex}
+                  style={{ animationDelay: `${qIndex * 0.05}s` }} // Staggered loading untuk soal
+                >
                   <div className="q-header">
-                    <span className="q-num">{String(s.id).padStart(2, '0')}.</span>
+                    <span className="q-num">{String(qIndex + 1).padStart(2, '0')}.</span>
                     <span className={`q-tag ${tagClass[s.tag] || ''}`}>{s.tagLabel}</span>
                   </div>
                   <div className="q-body">
@@ -406,51 +467,52 @@ export default function Home() {
           {soal.length > 0 && (
             <div className="bottom-controls">
               <div className="submit-box">
-                <div className="submit-info">Sudah menjawab <span>{answeredCount}</span> dari <span>{soal.length}</span> soal</div>
-                <button className="btn primary" onClick={handleCheckAll} disabled={submitted} style={{ opacity: submitted ? 0.5 : 1 }}>Periksa Jawaban</button>
+                <div className="submit-info">Kamu sudah menjawab <span>{answeredCount}</span> dari <span>{soal.length}</span> soal</div>
+                <button className="btn primary" onClick={handleCheckAll} disabled={submitted} style={{ opacity: submitted ? 0.4 : 1, cursor: submitted ? 'not-allowed' : 'pointer' }}>Periksa Hasil</button>
               </div>
             </div>
           )}
 
           <div className={`result-card ${submitted ? 'show' : ''}`} id="resultCard">
             <div className="result-inner">
-              <div style={{ fontSize: '13px', color: 'var(--muted)' }}>Nilai Akhir</div>
+              <div style={{ fontSize: '13px', color: 'var(--muted)', fontFamily:'Space Mono' }}>SKOR AKHIR SIMULASI</div>
               <div className="result-score">{score}</div>
-              <div className="result-label">dari {soal.length} soal benar</div>
-              <div className="result-desc">{submitted && getTierDescription()}</div>
+              <div style={{ fontSize:'14px', fontWeight:'600', marginBottom:'12px' }}>Koreksi: {score} Benar & {soal.length - score} Salah</div>
+              <div style={{ fontSize:'13px', color:'var(--accent)', lineHeight:'1.6', maxWidth:'500px', margin:'0 auto' }}>{submitted && getTierDescription()}</div>
             </div>
           </div>
         </>
       )}
 
-      {/* TOAST & MODAL ADMIN */}
+      {/* SYSTEM TOAST & ADMIN MODAL PANELS */}
       <div className={`toast ${showToast ? 'show' : ''}`}>{toastMsg}</div>
+      
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>{isAdmin ? '⚙️ Admin Panel' : '🔒 Akses Admin'}</h3>
-            <div className="modal-desc">Device ID: {deviceId}</div>
+            <h3>{isAdmin ? '⚙️ Admin Dashboard' : '🔒 Akses Enkripsi Admin'}</h3>
+            <div className="modal-desc">Device Authenticated ID: {deviceId}</div>
             
             {!isAdmin ? (
               <div>
-                <input type="password" placeholder="Masukkan Sandi Admin..." className="modal-input" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} />
+                <input type="password" placeholder="Masukkan Sandi Kunci Admin..." className="modal-input" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} />
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                  <button className="btn primary" onClick={handleLoginAdmin}>Masuk</button>
+                  <button className="btn primary" onClick={handleLoginAdmin}>Otorisasi</button>
                   <button className="btn" onClick={() => setShowModal(false)}>Batal</button>
                 </div>
               </div>
             ) : (
               <div>
                 <div className="admin-section" style={{ marginTop: '0', paddingTop: '0', borderTop: 'none' }}>
-                  <h4>1. Upload Paket Baru (.json)</h4>
-                  <input type="text" placeholder="Nama Mapel (Misal: SAT Fisika)" className="modal-input" value={newPacketName} onChange={(e) => setNewPacketName(e.target.value)} />
+                  <h4>1. Inject Paket Baru (.json)</h4>
+                  <input type="text" placeholder="Nama Mata Pelajaran (Contoh: SAT Sejarah)" className="modal-input" value={newPacketName} onChange={(e) => setNewPacketName(e.target.value)} />
                   <input type="file" accept=".json" className="modal-input" onChange={handleFileUpload} style={{ padding: '6px' }} />
-                  <button className="btn primary" style={{ width: '100%', marginTop: '5px' }} onClick={handleSaveNewPacket}>Unggah ke Server</button>
+                  <button className="btn primary" style={{ width: '100%', marginTop: '5px' }} onClick={handleSaveNewPacket}>Unggah ke Database</button>
                 </div>
                 
                 <div className="admin-section">
-                  <h4>2. Kelola Paket Tersedia</h4>
-                  {packetsList.length === 0 ? <p style={{ fontSize: '12px', color: 'var(--muted)' }}>Belum ada paket.</p> : (
+                  <h4>2. Wipe/Hapus Paket Aktif</h4>
+                  {packetsList.length === 0 ? <p style={{ fontSize: '12px', color: 'var(--muted)' }}>Belum ada paket terdeteksi.</p> : (
                     packetsList.map(p => (
                       <div className="admin-packet-item" key={p.id}>
                         <span>{p.packet_name}</span>
@@ -461,7 +523,7 @@ export default function Home() {
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
-                  <button className="btn" style={{ width: '100%' }} onClick={() => setShowModal(false)}>Tutup Panel</button>
+                  <button className="btn" style={{ width: '100%' }} onClick={() => setShowModal(false)}>Keluar Panel</button>
                 </div>
               </div>
             )}
